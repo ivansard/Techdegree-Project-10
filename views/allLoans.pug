@@ -3,14 +3,14 @@ extends layout.pug
 block main
     h1 Loans
     p
-        a.button(href='new_loan.html') Create New Loan
+        a.button(href='/loans/new') Create New Loan
     p
         | Filters 
-        a(href='all_loans.html') All
+        a(href='/loans/all') All
         |  | 
-        a(href='overdue_loans.html') Overdue
+        a(href='/loans/overdue') Overdue
         |  | 
-        a(href='checked_loans.html') Checked Out
+        a(href='/loans/checkout') Checked Out
     table
         thead
             tr
@@ -21,15 +21,45 @@ block main
                 th Returned on
                 th Action
         tbody
-            each loan in loans
-                tr
-                    td
-                        a(href='book_detail.html') #{loan.Book.dataValues.title}
-                    td  #{loan.Patron.dataValues.first_name} #{loan.Patron.dataValues.last_name}
-                    td  #{loan.loaned_on}
-                    td  #{loan.return_by}   
-                    td  #{loan.returned_on}   
-                    if(!loan.returned_on)
+            if overdueFilter
+                each loan in loans
+                        if(!loan.returned_on && loan.return_by < today)
+                            tr
+                                td
+                                    a(href=`/books/${loan.Book.dataValues.id}`) #{loan.Book.dataValues.title}
+                                td  
+                                    a(href=`/patrons/${loan.Patron.dataValues.id}`) #{loan.Patron.dataValues.first_name} #{loan.Patron.dataValues.last_name}
+                                td  #{loan.loaned_on}
+                                td  #{loan.return_by}   
+                                td  #{loan.returned_on}   
+                                if(!loan.returned_on)
+                                    td
+                                        a(href='#') Return Book
+            else if checkoutFilter
+                each loan in loans
+                        if(!loan.returned_on && loan.return_by > today)
+                            tr
+                                td
+                                    a(href=`/books/${loan.Book.dataValues.id}`) #{loan.Book.dataValues.title}
+                                td  
+                                    a(href=`/patrons/${loan.Patron.dataValues.id}`) #{loan.Patron.dataValues.first_name} #{loan.Patron.dataValues.last_name}
+                                td  #{loan.loaned_on}
+                                td  #{loan.return_by}   
+                                td  #{loan.returned_on}   
+                                if(!loan.returned_on)
+                                    td
+                                        a(href='#') Return Book
+            else
+                each loan in loans
+                    tr
                         td
-                            a(href='#') Return Book
+                            a(href=`/books/${loan.Book.dataValues.id}`) #{loan.Book.dataValues.title}
+                        td  
+                            a(href=`/patrons/${loan.Patron.dataValues.id}`) #{loan.Patron.dataValues.first_name} #{loan.Patron.dataValues.last_name}
+                        td  #{loan.loaned_on}
+                        td  #{loan.return_by}   
+                        td  #{loan.returned_on}   
+                        if(!loan.returned_on)
+                            td
+                                a(href='#') Return Book
                     

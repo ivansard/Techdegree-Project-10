@@ -82,9 +82,27 @@ app.get('/books/:id', (req, res) => {
     })
 })
 
+app.post('/books/:id', (req, res) => {
+    Book.findByPk(req.params.id)
+    .then( book => {
+      return book.update(req.body)
+    })
+    .then( (updatedBook) => {
+        res.redirect('/books/all')
+    })
+    .catch( error => {
+        console.log(error);
+    })
+   
+})
+
 app.post('/books/new', (req, res) => {
-    Book.create(req.body).then( book => {
-        res.render('bookDetails', {book:book})
+    Book.create(req.body)
+    .then( () => {
+        Book.findAll()
+        .then( books => {
+            res.render('allBooks', {books: books})
+        })
     }).catch( error => {
         console.log(error);
     })
@@ -102,6 +120,32 @@ app.get('/loans/all', (req, res) => {
     })
     .catch( error => {
         console.log(error);
+    })
+})
+
+app.get('/loans/new', (req, res) => {
+    Promise.all([Book.findAll(), Patron.findAll()])
+    .then( values => {
+        console.log(values[0]);
+        res.render('newLoan', {loan: Loan.build(), allBooks: values[0], allPatrons: values[1]})
+    })
+})
+
+app.get('/loans/overdue', (req, res) =>{
+    Loan.findAll({
+        include: [Book, Patron]
+    })
+    .then( loans => {
+        res.render('allLoans', {loans: loans, overdueFilter: true, today: createToday()})
+    })
+})
+
+app.get('/loans/checkout', (req, res) =>{
+    Loan.findAll({
+        include: [Book, Patron]
+    })
+    .then( loans => {
+        res.render('allLoans', {loans: loans, checkoutFilter: true, today: createToday()})
     })
 })
 
