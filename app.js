@@ -7,6 +7,31 @@ const Patron = require('./models').Patron
 
 const app = express();
 
+const createFormattedDate = date =>{
+    
+    let dd = date.getDate();
+    let mm = date.getMonth() + 1; 
+    let yyyy = date.getFullYear();
+
+    if(dd<10) {
+        dd = '0'+dd
+    } 
+
+    if(mm<10) {
+        mm = '0'+mm
+    } 
+
+    let formattedDate = yyyy + '-' + mm + '-' + dd;
+
+    return formattedDate;
+}
+
+const addDays = (date, days) => {
+    var result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+}
+
 const createToday = () => {
     let today = new Date();
     let dd = today.getDate();
@@ -25,6 +50,9 @@ const createToday = () => {
 
     return today;
 }
+
+
+
 
 
 //Setting body-parser, pug as view engine
@@ -127,7 +155,7 @@ app.get('/loans/new', (req, res) => {
     Promise.all([Book.findAll(), Patron.findAll()])
     .then( values => {
         console.log(values[0]);
-        res.render('newLoan', {loan: Loan.build(), allBooks: values[0], allPatrons: values[1]})
+        res.render('newLoan', {loan: Loan.build(), allBooks: values[0], allPatrons: values[1], today: createToday()})
     })
 })
 
@@ -146,6 +174,13 @@ app.get('/loans/checkout', (req, res) =>{
     })
     .then( loans => {
         res.render('allLoans', {loans: loans, checkoutFilter: true, today: createToday()})
+    })
+})
+
+app.post('/loans/new', (req, res) => {
+    Loan.create(req.body)
+    .then( loan => {
+        res.redirect('/loans/all')
     })
 })
 
