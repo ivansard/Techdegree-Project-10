@@ -24,6 +24,12 @@ block main
             each loan in loans
                 tr
                     td
-                        a(href='book_detail.html') Nema me #{loan.book.id}
-                    td  Toliko puta ovde
+                        a(href='book_detail.html') #{loan.Book.dataValues.title}
+                    td  #{loan.Patron.dataValues.first_name} #{loan.Patron.dataValues.last_name}
+                    td  #{loan.loaned_on}
+                    td  #{loan.return_by}   
+                    td  #{loan.returned_on}   
+                    if(!loan.returned_on)
+                        td
+                            a(href='#') Return Book
                     

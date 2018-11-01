@@ -34,23 +34,16 @@ block main
                 th Returned on
                 th Action
         tbody
-            tr
-            td
-                a(href='book_detail.html') Harry Potter and the Goblet of Fire
-            td
-                a(href='patron_detail.html') Andrew Chalkley
-            td 2015-12-11
-            td 2015-12-18
-            td
-            td
-                a.button(href='return_book.html') Return Book
-            tr
-                td
-                    a(href='book_detail.html') A Brief History of Time
-                td
-                    a(href='patron_detail.html') Andrew Chalkley
-                td 2015-12-12
-                td 2015-12-19
-                td
-                td
-                    a.button(href='return_book.html') Return Book
+            if(patron.Loans.length > 0)
+                each loan in patron.Loans
+                    tr
+                        td
+                            a(href='book_detail.html') Harry Potter and the Goblet of Fire
+                        td
+                            a(href=`/patron/${patron.id}`) #{patron.first_name} #{patron.last_name}
+                        td #{loan.dataValues.loaned_on}
+                        td #{loan.dataValues.return_by}
+                        td #{loan.dataValues.returned_on}
+                        if(!loan.dataValues.returned_on)
+                            td
+                                a.button(href='return_book.html') Return Book
