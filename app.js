@@ -7,6 +7,25 @@ const Patron = require('./models').Patron
 
 const app = express();
 
+const createToday = () => {
+    let today = new Date();
+    let dd = today.getDate();
+    let mm = today.getMonth() + 1; 
+    let yyyy = today.getFullYear();
+
+    if(dd<10) {
+        dd = '0'+dd
+    } 
+
+    if(mm<10) {
+        mm = '0'+mm
+    } 
+
+    today = yyyy + '-' + mm + '-' + dd;
+
+    return today;
+}
+
 
 //Setting body-parser, pug as view engine
 app.use(bodyParser.urlencoded({extended: false}));
@@ -15,6 +34,7 @@ app.set('view engine', 'pug')
 
 app.get('/', (req, res) => {
     res.render('index');
+    createToday()
 })
 
 // Book routes
@@ -29,6 +49,24 @@ app.get('/books/all', (req, res) => {
 })
 app.get('/books/new', (req, res) => {
     res.render('newBook', {book: Book.build() });
+})
+
+app.get('/books/overdue', (req, res) =>{
+    Book.findAll({
+        include: [Loan]
+    })
+    .then( books => {
+        res.render('allBooks', {books: books, overdueFilter: true, today: createToday()})
+    })
+})
+
+app.get('/books/checkout', (req, res) =>{
+    Book.findAll({
+        include: [Loan]
+    })
+    .then( books => {
+        res.render('allBooks', {books: books, checkoutFilter: true, today: createToday()})
+    })
 })
 
 //Figure out how to add the Patron data along with including the loan
