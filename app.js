@@ -103,7 +103,32 @@ app.get('/books/:id', (req, res) => {
         include: [Loan]
     })
     .then( book => {
-        res.render('bookDetails', {book: book})
+        if(book){
+            res.render('bookDetails', {book: book})
+        } else {
+            res.send(404)
+        }
+    })
+    .catch( error => {
+        console.log(error);
+    })
+})
+
+app.post('/books/new', (req, res) => {
+    Book.create(req.body)
+    .then( () => {
+        Book.findAll()
+        .then( books => {
+            res.render('allBooks', {books: books})
+        })
+    })
+    .catch( error => {
+        if( error.name === 'SequelizeValidationError'){
+            res.render('newBook', {book: Book.build(req.body), errors: error.errors})
+        } else {
+            //This error will be caught by the final catch block
+            throw error
+        }
     })
     .catch( error => {
         console.log(error);
@@ -115,8 +140,18 @@ app.post('/books/:id', (req, res) => {
     .then( book => {
       return book.update(req.body)
     })
-    .then( (updatedBook) => {
+    .then( updatedBook => {
         res.redirect('/books/all')
+    })
+    .catch( error => {
+        if( error.name === 'SequelizeValidationError'){
+            let book = Book.build(req.body);
+            book.id = req.params.id;
+            res.render('bookDetails', {book: book, errors: error.errors})
+        } else {
+            //This error will be caught by the final catch block
+            throw error
+        }
     })
     .catch( error => {
         console.log(error);
@@ -124,17 +159,7 @@ app.post('/books/:id', (req, res) => {
    
 })
 
-app.post('/books/new', (req, res) => {
-    Book.create(req.body)
-    .then( () => {
-        Book.findAll()
-        .then( books => {
-            res.render('allBooks', {books: books})
-        })
-    }).catch( error => {
-        console.log(error);
-    })
-})
+
 
 //Loans routes
 

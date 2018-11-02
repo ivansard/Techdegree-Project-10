@@ -1,6 +1,9 @@
 extends layout.pug
 
 block main
+
+    include includes/errors.pug
+
     h1 Book: #{book.title}  
     form(action=`/books/${book.id}` method='POST')
         p

@@ -7,14 +7,36 @@ module.exports = (sequelize, DataTypes) => {
     }, 
     title:{
       type: DataTypes.STRING,
-      allowNull: false
+      validate: {
+        notEmpty:{
+          msg: 'Title must be specified'
+        }
+      }
     },
     author:{
       type: DataTypes.STRING,
-      allowNull: false
+      validate: {
+        notEmpty:{
+          msg: 'Author must be specified'
+        }
+      }
     },
-    genre: DataTypes.STRING,
-    first_published: DataTypes.INTEGER,
+    genre:{
+      type: DataTypes.STRING,
+      validate: {
+        notEmpty:{
+          msg: 'Genre must be specified'
+        }
+      }
+    },
+    first_published:{
+      type: DataTypes.INTEGER,
+      validate: {
+        notEmpty:{
+          msg: 'Publishing year must be specified'
+        }
+      }
+    } 
   }, {
     timestamps: false
   });

@@ -2,6 +2,8 @@ extends layout.pug
 
 block main
 
+    include includes/errors
+
     h1 New Book
     form(action='/books/new', method='POST')
         p
