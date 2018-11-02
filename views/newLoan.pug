@@ -2,16 +2,21 @@ extends layout.pug
 
 block main 
 
+    include includes/errors
+
     h1 New Loan
+    
     form(action='/loans/new', method='POST')
         p
             label(for='book_id') Book
             select(name='book_id')
+                option(value='', selected, disabled, hidden) Choose here
                 each book in allBooks
                     option(value=book.id) #{book.title}
         p
             label(for='patron_id') Patron
             select(name='patron_id')
+                option(value='', selected, disabled, hidden) Choose here
                 each patron in allPatrons
                     option(value=patron.id) #{patron.first_name} #{patron.last_name}
         p
@@ -19,6 +24,6 @@ block main
             input#loaned_on(type='text', name='loaned_on' value=today)
         p
             label(for='return_by') Return by:
-            input#return_by(type='text', name='return_by', value='Sun May 29 2016')
+            input#return_by(type='text', name='return_by', value=weekFromToday)
         p
             input(type='submit', value='Create New Loan')

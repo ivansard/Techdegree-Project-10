@@ -30,7 +30,7 @@ block main
                             td= book.first_published
             else if checkoutFilter
                 each book in books
-                    if(book.Loans.length > 0 && !book.Loans[book.Loans.length - 1].dataValues.returned_on && book.Loans[book.Loans.length - 1].dataValues.return_by > today)
+                    if(book.Loans.length > 0 && !book.Loans[book.Loans.length - 1].dataValues.returned_on)
                         tr
                             td
                                 a(href=`/books/${book.id}`) #{book.title}

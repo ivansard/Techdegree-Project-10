@@ -2,7 +2,10 @@ extends layout.pug
 
 block main
 
-    h1 Patron: Return Book
+    h1 #{loan.Patron.first_name} #{loan.Patron.last_name}: Return Book
+
+    include includes/errors
+
     p
         strong Book Title: 
         | #{loan.Book.title}

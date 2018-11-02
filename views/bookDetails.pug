@@ -31,15 +31,17 @@ block main
                 th Returned on
                 th Action
         tbody
-            if(book.Loans)
+            if(book.Loans && book.Loans.length > 0)
                 each loan in book.Loans
                     tr
                         td
                             a(href=`/books/${book.id}`) #{book.title}
                         td
-                            a(href=`/patrons/${loan.patron_id}`) #{loan.patron_id}
+                            a(href=`/patrons/${loan.patron_id}`) #{loan.Patron.first_name} #{loan.Patron.last_name}
                         td= loan.loaned_on
                         td= loan.return_by
                         td
                         td
                             a.button(href=`/books/return/${loan.id}`) Return Book
+            else
+                h3 This book has no loan history

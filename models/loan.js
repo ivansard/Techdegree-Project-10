@@ -5,11 +5,47 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       primaryKey: true
     }, 
-    book_id: DataTypes.INTEGER,
-    patron_id: DataTypes.INTEGER,
-    loaned_on: DataTypes.DATE,
-    return_by: DataTypes.DATE,
-    returned_on: DataTypes.DATE
+    book_id:{
+      type:DataTypes.INTEGER,
+      validate:{
+        notEmpty:{
+          msg: 'Please select a book to loan out'
+        }
+      }
+    }, 
+    patron_id:{
+      type:DataTypes.INTEGER,
+      validate:{
+        notEmpty:{
+          msg: 'Please select a patron who will loan out the book'
+        }
+      }
+    }, 
+    loaned_on:{
+      type: DataTypes.DATE,
+      validate:{
+        isDate:{
+          msg: 'Loaned on must be a in a valid date format (e.g. YYYY-MM-DD)'
+        }
+      }
+    },
+    return_by:{
+      type: DataTypes.DATE,
+      validate:{
+        isDate:{
+          msg: 'Loaned on must be a in a valid date format (e.g. YYYY-MM-DD)'
+        }
+      }
+    },
+    returned_on:{
+      type: DataTypes.DATE,
+      validate:{
+        allowNull: true,
+        isDate:{
+          msg: 'Loaned on must be a in a valid date format (e.g. YYYY-MM-DD)'
+        }
+      }
+    },
   }, {
     timestamps: false
   });

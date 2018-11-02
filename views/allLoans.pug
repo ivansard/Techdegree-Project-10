@@ -37,7 +37,7 @@ block main
                                         a(href=`/books/return/${loan.id}`) Return Book
             else if checkoutFilter
                 each loan in loans
-                        if(!loan.returned_on && loan.return_by > today)
+                        if(!loan.returned_on)
                             tr
                                 td
                                     a(href=`/books/${loan.Book.dataValues.id}`) #{loan.Book.dataValues.title}

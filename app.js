@@ -7,6 +7,9 @@ const Patron = require('./models').Patron
 
 const app = express();
 
+//VALIDACIJA ZA BOOK_ID i PATRON_ID kada se kreira novi Loan
+//VALIDACIJA ZA RETURNED_ON kod returnBook view-a, frka je sto moze da bude NULL, a mora i datum da bude
+
 const createFormattedDate = date =>{
     
     let dd = date.getDate();
@@ -29,7 +32,7 @@ const createFormattedDate = date =>{
 const addDays = (date, days) => {
     var result = new Date(date);
     result.setDate(result.getDate() + days);
-    return result;
+    return createFormattedDate(result);
 }
 
 const createToday = () => {
@@ -46,13 +49,10 @@ const createToday = () => {
         mm = '0'+mm
     } 
 
-    today = yyyy + '-' + mm + '-' + dd;
+    today = yyyy +  '-' + mm + '-' + dd;
 
     return today;
 }
-
-
-
 
 
 //Setting body-parser, pug as view engine
@@ -86,6 +86,9 @@ app.get('/books/overdue', (req, res) =>{
     .then( books => {
         res.render('allBooks', {books: books, overdueFilter: true, today: createToday()})
     })
+    .catch( error => {
+        console.log(error);
+    })
 })
 
 app.get('/books/checkout', (req, res) =>{
@@ -95,12 +98,22 @@ app.get('/books/checkout', (req, res) =>{
     .then( books => {
         res.render('allBooks', {books: books, checkoutFilter: true, today: createToday()})
     })
+    .catch( error => {
+        console.log(error);
+    })
 })
 
 //Figure out how to add the Patron data along with including the loan
 app.get('/books/:id', (req, res) => {
     Book.findByPk(req.params.id, {
-        include: [Loan]
+        include: [
+            {
+                model: Loan,
+                include: [
+                    Patron
+                ]
+            }
+        ]
     })
     .then( book => {
         if(book){
@@ -119,7 +132,6 @@ app.get('/books/return/:id', (req, res) => {
         include: [Book, Patron]
     })
     .then( loan => {
-        console.log(loan);
         res.render('returnBook', {loan:loan, today: createToday()})
     })
     .catch( error => {
@@ -139,6 +151,19 @@ app.post('/books/return/:id', (req, res) => {
         }).then( loans => {
             res.render('allLoans', {loans:loans})
         })
+    })
+    .catch( error => {
+        if( error.name === 'SequelizeValidationError'){
+            Loan.findByPk(req.params.id, {
+                include: [Book, Patron]
+            })
+            .then( loan => {
+                res.render('returnBook', {loan:loan, today: createToday(), errors: error.errors})
+            })
+        } else {
+            //This error will be caught by the final catch block
+            throw error
+        }
     })
     .catch( error => {
         console.log(error);
@@ -188,7 +213,6 @@ app.post('/books/:id', (req, res) => {
     .catch( error => {
         console.log(error);
     })
-   
 })
 
 
@@ -210,8 +234,10 @@ app.get('/loans/all', (req, res) => {
 app.get('/loans/new', (req, res) => {
     Promise.all([Book.findAll(), Patron.findAll()])
     .then( values => {
-        console.log(values[0]);
-        res.render('newLoan', {loan: Loan.build(), allBooks: values[0], allPatrons: values[1], today: createToday()})
+        res.render('newLoan', {loan: Loan.build(), allBooks: values[0], allPatrons: values[1], today: createToday(), weekFromToday: addDays(createToday(), 7)})
+    })
+    .catch( error => {
+        console.log(error);
     })
 })
 
@@ -222,6 +248,9 @@ app.get('/loans/overdue', (req, res) =>{
     .then( loans => {
         res.render('allLoans', {loans: loans, overdueFilter: true, today: createToday()})
     })
+    .catch( error => {
+        console.log(error);
+    })
 })
 
 app.get('/loans/checkout', (req, res) =>{
@@ -231,18 +260,33 @@ app.get('/loans/checkout', (req, res) =>{
     .then( loans => {
         res.render('allLoans', {loans: loans, checkoutFilter: true, today: createToday()})
     })
+    .catch( error => {
+        console.log(error);
+    })
 })
 
 app.post('/loans/new', (req, res) => {
+    console.log(req.body);
     Loan.create(req.body)
     .then( loan => {
         res.redirect('/loans/all')
     })
+    .catch( error => {
+        if( error.name === 'SequelizeValidationError'){
+            Promise.all([Book.findAll(), Patron.findAll()])
+            .then( values => {
+                res.render('newLoan', {loan: Loan.build(req.body), allBooks: values[0], allPatrons: values[1], today: createToday(), weekFromToday: addDays(createToday(), 7), errors: error.errors})
+            })
+        } else {
+            //This error will be caught by the final catch block
+            throw error
+        }
+    })
+    .catch( error => {
+        console.log(error);
+    })
 })
 
-//Kreiraj POST za novu knjigu
-//Kreiraj renderovanje svih knjiga u GET za sve knjige
-//Obrisi default tekst u pug fajlovima i probaj da l' radi
 
 //Patron routes
 
@@ -262,13 +306,20 @@ app.get('/patrons/new', (req, res) => {
 
 app.get('/patrons/:id', (req, res) => {
     Patron.findByPk(req.params.id, {
-        include: [Loan]
+        include: [
+            {
+                model: Loan,
+                include: [Book]
+            }
+        ]
     })
     .then( patron => {
         console.log(patron.Loans);
         res.render('patronDetails', {patron: patron})
     })
-
+    .catch( error => {
+        console.log(error);
+    })
 })
 
 app.post('/patrons/new', (req, res) => {
@@ -281,14 +332,35 @@ app.post('/patrons/new', (req, res) => {
     })
 })
 
-// app.post('/books/new', (req, res) => {
-//     Book.create(req.body).then( book => {
-//         res.render('bookDetails', {book:book})
-//     }).catch( error => {
-//         console.log(error);
-//     })
-// })
-
+app.post('/patrons/:id', (req, res) => {
+    Patron.findByPk(req.params.id,  {
+        include: [
+            {
+                model: Loan,
+                include: [Book]
+            }
+        ]
+    })
+    .then( patron => {
+        return patron.update(req.body)
+    })
+    .then( updatedPatron => {
+        res.redirect('/patrons/all')
+    })
+    .catch( error => {
+        if( error.name === 'SequelizeValidationError'){
+            let patron = Patron.build(req.body);
+            patron.id = req.params.id;
+            res.render('patronDetails', {patron: patron, errors: error.errors})
+        } else {
+            //This error will be caught by the final catch block
+            throw error
+        }
+    })
+    .catch( error => {
+        console.log(error);
+    })
+})
 
 app.listen(3000, () => {
     console.log('Server running on port 3000');
