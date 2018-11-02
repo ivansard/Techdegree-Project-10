@@ -34,7 +34,7 @@ block main
                                 td  #{loan.returned_on}   
                                 if(!loan.returned_on)
                                     td
-                                        a(href='#') Return Book
+                                        a(href=`/books/return/${loan.id}`) Return Book
             else if checkoutFilter
                 each loan in loans
                         if(!loan.returned_on && loan.return_by > today)
@@ -48,7 +48,7 @@ block main
                                 td  #{loan.returned_on}   
                                 if(!loan.returned_on)
                                     td
-                                        a(href='#') Return Book
+                                        a(href=`/books/return/${loan.id}`) Return Book
             else
                 each loan in loans
                     tr
@@ -61,5 +61,5 @@ block main
                         td  #{loan.returned_on}   
                         if(!loan.returned_on)
                             td
-                                a(href='#') Return Book
+                                a(href=`/books/return/${loan.id}`) Return Book
                     

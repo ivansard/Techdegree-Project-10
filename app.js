@@ -114,6 +114,38 @@ app.get('/books/:id', (req, res) => {
     })
 })
 
+app.get('/books/return/:id', (req, res) => {
+    Loan.findByPk(req.params.id, {
+        include: [Book, Patron]
+    })
+    .then( loan => {
+        console.log(loan);
+        res.render('returnBook', {loan:loan, today: createToday()})
+    })
+    .catch( error => {
+        console.log(error);
+    })
+
+})
+
+app.post('/books/return/:id', (req, res) => {
+    Loan.findByPk(req.params.id)
+    .then( loan => {
+       loan.update(req.body);
+    })
+    .then( () => {
+        Loan.findAll({
+            include: [Book, Patron]
+        }).then( loans => {
+            res.render('allLoans', {loans:loans})
+        })
+    })
+    .catch( error => {
+        console.log(error);
+    })
+
+})
+
 app.post('/books/new', (req, res) => {
     Book.create(req.body)
     .then( () => {
@@ -168,7 +200,6 @@ app.get('/loans/all', (req, res) => {
         include: [Book, Patron]
     })
     .then( loans => {
-        console.log(loans[0].Patron.dataValues);
         res.render('allLoans', {loans: loans})
     })
     .catch( error => {
