@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
+
 
 const Book = require('../models').Book
 const Patron = require('../models').Patron
@@ -10,7 +13,7 @@ const Loan = require('../models').Loan
 router.get('/all', (req, res) => {
     Patron.findAll()
     .then( patrons => {
-        res.render('allPatrons', {patrons: patrons});
+        res.render('allPatrons', {patrons: patrons, path: req.route.path});
     })
     .catch( error => {
         console.log(error);
@@ -78,5 +81,42 @@ router.post('/:id', (req, res) => {
         console.log(error);
     })
 })
+
+// Search Routes
+
+router.post('/all/search', (req, res) => {
+    const searchInput = req.body.searchInput;
+    Patron.findAll({
+        where: {
+            [Op.or]:[
+                {
+                    first_name: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    last_name: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    email: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    address: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    library_id: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    zip_code: {[Op.like]: `%${searchInput}%`}
+                }
+            ]
+        }
+    })
+    .then( patrons => {
+        res.render('allPatrons', {patrons: patrons, path: '/all'});
+    })
+    .catch( error => {
+        console.log(error);
+    })
+})
+
 
 module.exports = router;

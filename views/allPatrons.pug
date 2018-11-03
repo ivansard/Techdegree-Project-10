@@ -1,6 +1,11 @@
 extends layout.pug
 
 block main
+
+    form(action=`/patrons${path}/search`, method='POST')
+        input(type='text' name='searchInput' placeholder='Search for...')
+        input(type='submit', value='Search')
+
     h1 Patrons
     p
         a.button(href='/patrons/new') Create New Patron

@@ -10,15 +10,19 @@ block main
         p
             label(for='book_id') Book
             select(name='book_id')
-                option(value='', selected, disabled, hidden) Choose here
-                each book in allBooks
-                    option(value=book.id) #{book.title}
+                each book, index in allBooks
+                    if index === 0
+                        option(value=book.id selected) #{book.title}
+                    else
+                        option(value=book.id) #{book.title}
         p
             label(for='patron_id') Patron
             select(name='patron_id')
-                option(value='', selected, disabled, hidden) Choose here
-                each patron in allPatrons
-                    option(value=patron.id) #{patron.first_name} #{patron.last_name}
+                each patron,index in allPatrons
+                    if index === 0
+                        option(value=patron.id selected) #{patron.first_name} #{patron.last_name}
+                    else
+                        option(value=patron.id) #{patron.first_name} #{patron.last_name}
         p
             label(for='loaned_on') Loaned on:
             input#loaned_on(type='text', name='loaned_on' value=today)

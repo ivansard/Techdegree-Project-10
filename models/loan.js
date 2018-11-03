@@ -40,7 +40,6 @@ module.exports = (sequelize, DataTypes) => {
     returned_on:{
       type: DataTypes.DATE,
       validate:{
-        allowNull: true,
         isDate:{
           msg: 'Loaned on must be a in a valid date format (e.g. YYYY-MM-DD)'
         }

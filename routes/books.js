@@ -62,7 +62,7 @@ router.get('/overdue', (req, res) =>{
 
 router.get('/checkout', (req, res) =>{
     Book.findAll({
-        include: [Loan],
+        include: [Loan]
         //Figure out how to fufill this condition:
         // if(book.Loans.length > 0 && !book.Loans[book.Loans.length - 1].dataValues.returned_on)
         // where: {
