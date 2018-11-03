@@ -64,13 +64,16 @@ const bookRoutes = require('./routes/books.js');
 const patronRoutes = require('./routes/patrons.js');
 const loanRoutes = require('./routes/loans.js');
 
-app.use('/books', bookRoutes);
-app.use('/patrons', patronRoutes);
-app.use('/loans', loanRoutes);
 
 app.get('/', (req, res) => {
     res.render('index');
 })
+
+app.use('/books', bookRoutes);
+app.use('/patrons', patronRoutes);
+app.use('/loans', loanRoutes);
+
+
 
 
 app.listen(3000, () => {

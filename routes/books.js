@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
 const Book = require('../models').Book;
 const Loan = require('../models').Loan
@@ -25,25 +27,33 @@ const createToday = () => {
 }
 
 // Book routes
+
+router.get('/new', (req, res) => {
+    res.render('newBook', {book: Book.build() });
+})
+
 router.get('/all', (req, res) => {
+    console.log(req.route.path);  
     Book.findAll()
     .then( books => {
-        res.render('allBooks', {books: books});
+        res.render('allBooks', {books: books, path: req.route.path});
     })
     .catch( error => {
         console.log(error);
     })
 })
-router.get('/new', (req, res) => {
-    res.render('newBook', {book: Book.build() });
-})
 
 router.get('/overdue', (req, res) =>{
     Book.findAll({
         include: [Loan]
+         //Figure out how to fufill this condition:
+        //  if(book.Loans.length > 0 && !book.Loans[book.Loans.length - 1].dataValues.returned_on && book.Loans[book.Loans.length - 1].dataValues.return_by < today)
     })
     .then( books => {
-        res.render('allBooks', {books: books, overdueFilter: true, today: createToday()})
+        res.render('allBooks', {books: books,
+                                overdueFilter: true,
+                                today: createToday(),
+                                path: req.route.path})
     })
     .catch( error => {
         console.log(error);
@@ -52,10 +62,118 @@ router.get('/overdue', (req, res) =>{
 
 router.get('/checkout', (req, res) =>{
     Book.findAll({
-        include: [Loan]
+        include: [Loan],
+        //Figure out how to fufill this condition:
+        // if(book.Loans.length > 0 && !book.Loans[book.Loans.length - 1].dataValues.returned_on)
+        // where: {
+        //     [Op.and]:[
+        //         {
+        //             Loans: Loans.length > 0
+        //         },
+        //         {
+        //             Loans: Loans[book.Loans.length - 1].dataValues.returned_on
+        //         },
+        //     ]
+        // }
     })
     .then( books => {
-        res.render('allBooks', {books: books, checkoutFilter: true, today: createToday()})
+        res.render('allBooks', {books: books,
+                                checkoutFilter: true,
+                                today: createToday(),
+                                path: req.route.path})
+    })
+    .catch( error => {
+        console.log(error);
+    })
+})
+router.post('/all/search', (req, res) => {
+    const searchInput = req.body.searchInput;
+    Book.findAll({
+        include: [Loan],
+        where: {
+            [Op.or]:[
+                {
+                    title: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    author: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    genre: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    first_published: {[Op.like]: `%${searchInput}%`}
+                }
+            ]
+        }
+    })
+    .then( books => {
+        res.render('allBooks', {books: books, path: '/all'});
+    })
+    .catch( error => {
+        console.log(error);
+    })
+})
+
+router.post('/overdue/search', (req, res) =>{
+    const searchInput = req.body.searchInput;
+    Book.findAll({
+        include: [Loan],
+        where: {
+            [Op.or]:[
+                {
+                    title: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    author: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    genre: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    first_published: {[Op.like]: `%${searchInput}%`}
+                }
+            ]
+        }
+    })
+    .then( books => {
+        res.render('allBooks', {books: books,
+                                path: "/overdue",
+                                overdueFilter: true,  
+                                today: createToday()})
+    })
+    .catch( error => {
+        console.log(error);
+    })
+})
+
+router.post('/checkout/:searchInput', (req, res) =>{
+    const searchInput = req.body.searchInput;
+    Book.findAll({
+        include: [Loan],
+        where: {
+            [Op.or]:[
+                {
+                    title: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    author: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    genre: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    first_published: {[Op.like]: `%${searchInput}%`}
+                }
+            ]
+        }
+    })
+    .then( books => {
+        console.log('Here');
+        res.render('allBooks', {books: books,
+                                checkoutFilter: true,
+                                today: createToday(),
+                                path: '/checkout'})
     })
     .catch( error => {
         console.log(error);

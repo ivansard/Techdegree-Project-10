@@ -1,6 +1,11 @@
 extends layout.pug
 
 block main
+
+    form(action=`/books${path}/search`, method='POST')
+        input(type='text' name='searchInput' placeholder='Search for...')
+        input(type='submit', value='Search')
+
     h1 Books
     p
         a.button(href='/books/new') Create New Book
@@ -28,6 +33,7 @@ block main
                             td= book.author
                             td= book.genre
                             td= book.first_published
+                            - let n = 0
             else if checkoutFilter
                 each book in books
                     if(book.Loans.length > 0 && !book.Loans[book.Loans.length - 1].dataValues.returned_on)
@@ -38,10 +44,15 @@ block main
                             td= book.genre
                             td= book.first_published
             else 
-                 each book in books
+                each book in books
                     tr
                         td
                             a(href=`/books/${book.id}`) #{book.title}
                         td= book.author
                         td= book.genre
                         td= book.first_published
+    - let n = 0
+    ul  
+        while n * 8 < books.length
+            form()
+                button(name='offset' value=++n) #{n}
