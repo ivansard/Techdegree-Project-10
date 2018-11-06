@@ -58,6 +58,8 @@ const createToday = () => {
 //Setting body-parser, pug as view engine
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+app.use('/static', express.static('public'));
+
 app.set('view engine', 'pug')
 
 const bookRoutes = require('./routes/books.js');

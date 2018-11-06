@@ -13,7 +13,7 @@ const Loan = require('../models').Loan
 router.get('/all', (req, res) => {
     Patron.findAll()
     .then( patrons => {
-        res.render('allPatrons', {patrons: patrons, path: req.route.path});
+        res.render('allPatrons', {patrons: patrons, path: req.route.path, offsetIndex: 0});
     })
     .catch( error => {
         console.log(error);
@@ -44,8 +44,11 @@ router.get('/:id', (req, res) => {
 
 router.post('/new', (req, res) => {
     Patron.create(req.body)
-    .then( patron => {
-        res.render('patronDetails', {patron: patron})
+    .then( () => {
+        Patron.findAll()
+        .then( patrons => {
+            res.render('allPatrons', {patrons: patrons})
+        })
     })
     .catch( error => {
         console.log(error);
@@ -115,6 +118,16 @@ router.post('/all/search', (req, res) => {
     })
     .catch( error => {
         console.log(error);
+    })
+})
+
+//Pagination Routes
+
+router.post('/all/pagination/:index', (req, res) => {
+    const offsetIndex = req.params.index - 1;
+    Patron.findAll().then( patrons => {
+        console.log(offsetIndex);
+        res.render('allPatrons', {patrons:patrons, path:'/all', offsetIndex: offsetIndex})
     })
 })
 

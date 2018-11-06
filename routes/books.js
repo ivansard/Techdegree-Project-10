@@ -26,6 +26,8 @@ const createToday = () => {
     return today;
 }
 
+//Na svakoj ruti all, checkout, overdue, kada se klikne na pagination li
+
 // Book routes
 
 router.get('/new', (req, res) => {
@@ -36,7 +38,7 @@ router.get('/all', (req, res) => {
     console.log(req.route.path);  
     Book.findAll()
     .then( books => {
-        res.render('allBooks', {books: books, path: req.route.path});
+        res.render('allBooks', {books: books, path: req.route.path, offsetIndex: 0});
     })
     .catch( error => {
         console.log(error);
@@ -53,7 +55,8 @@ router.get('/overdue', (req, res) =>{
         res.render('allBooks', {books: books,
                                 overdueFilter: true,
                                 today: createToday(),
-                                path: req.route.path})
+                                path: req.route.path,
+                                offsetIndex: 0})
     })
     .catch( error => {
         console.log(error);
@@ -62,16 +65,11 @@ router.get('/overdue', (req, res) =>{
 
 router.get('/checkout', (req, res) =>{
     Book.findAll({
-        include: [Loan]
-        //Figure out how to fufill this condition:
-        // if(book.Loans.length > 0 && !book.Loans[book.Loans.length - 1].dataValues.returned_on)
+        include: [Loan],
         // where: {
         //     [Op.and]:[
         //         {
-        //             Loans: Loans.length > 0
-        //         },
-        //         {
-        //             Loans: Loans[book.Loans.length - 1].dataValues.returned_on
+        //             returned_on: {[Op.eq]: null }
         //         },
         //     ]
         // }
@@ -80,100 +78,8 @@ router.get('/checkout', (req, res) =>{
         res.render('allBooks', {books: books,
                                 checkoutFilter: true,
                                 today: createToday(),
-                                path: req.route.path})
-    })
-    .catch( error => {
-        console.log(error);
-    })
-})
-router.post('/all/search', (req, res) => {
-    const searchInput = req.body.searchInput;
-    Book.findAll({
-        include: [Loan],
-        where: {
-            [Op.or]:[
-                {
-                    title: {[Op.like]: `%${searchInput}%`}
-                },
-                {
-                    author: {[Op.like]: `%${searchInput}%`}
-                },
-                {
-                    genre: {[Op.like]: `%${searchInput}%`}
-                },
-                {
-                    first_published: {[Op.like]: `%${searchInput}%`}
-                }
-            ]
-        }
-    })
-    .then( books => {
-        res.render('allBooks', {books: books, path: '/all'});
-    })
-    .catch( error => {
-        console.log(error);
-    })
-})
-
-router.post('/overdue/search', (req, res) =>{
-    const searchInput = req.body.searchInput;
-    Book.findAll({
-        include: [Loan],
-        where: {
-            [Op.or]:[
-                {
-                    title: {[Op.like]: `%${searchInput}%`}
-                },
-                {
-                    author: {[Op.like]: `%${searchInput}%`}
-                },
-                {
-                    genre: {[Op.like]: `%${searchInput}%`}
-                },
-                {
-                    first_published: {[Op.like]: `%${searchInput}%`}
-                }
-            ]
-        }
-    })
-    .then( books => {
-        res.render('allBooks', {books: books,
-                                path: "/overdue",
-                                overdueFilter: true,  
-                                today: createToday()})
-    })
-    .catch( error => {
-        console.log(error);
-    })
-})
-
-router.post('/checkout/:searchInput', (req, res) =>{
-    const searchInput = req.body.searchInput;
-    Book.findAll({
-        include: [Loan],
-        where: {
-            [Op.or]:[
-                {
-                    title: {[Op.like]: `%${searchInput}%`}
-                },
-                {
-                    author: {[Op.like]: `%${searchInput}%`}
-                },
-                {
-                    genre: {[Op.like]: `%${searchInput}%`}
-                },
-                {
-                    first_published: {[Op.like]: `%${searchInput}%`}
-                }
-            ]
-        }
-    })
-    .then( books => {
-        console.log('Here');
-        res.render('allBooks', {books: books,
-                                checkoutFilter: true,
-                                today: createToday(),
-                                path: '/checkout'})
+                                path: req.route.path,
+                                offsetIndex: 0})
     })
     .catch( error => {
         console.log(error);
@@ -202,6 +108,8 @@ router.get('/:id', (req, res) => {
         console.log(error);
     })
 })
+
+//Return book routes
 
 router.get('/return/:id', (req, res) => {
     Loan.findByPk(req.params.id, {
@@ -288,6 +196,122 @@ router.post('/:id', (req, res) => {
     })
     .catch( error => {
         console.log(error);
+    })
+})
+
+//Search routes
+
+router.post('/all/search', (req, res) => {
+    const searchInput = req.body.searchInput;
+    Book.findAll({
+        include: [Loan],
+        where: {
+            [Op.or]:[
+                {
+                    title: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    author: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    genre: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    first_published: {[Op.like]: `%${searchInput}%`}
+                }
+            ]
+        }
+    })
+    .then( books => {
+        res.render('allBooks', {books: books, path: '/all'});
+    })
+    .catch( error => {
+        console.log(error);
+    })
+})
+
+router.post('/overdue/search', (req, res) =>{
+    const searchInput = req.body.searchInput;
+    Book.findAll({
+        include: [Loan],
+        where: {
+            [Op.or]:[
+                {
+                    title: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    author: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    genre: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    first_published: {[Op.like]: `%${searchInput}%`}
+                }
+            ]
+        }
+    })
+    .then( books => {
+        res.render('allBooks', {books: books,
+                                path: "/overdue",
+                                overdueFilter: true,  
+                                today: createToday()})
+    })
+    .catch( error => {
+        console.log(error);
+    })
+})
+
+router.post('/checkout/search', (req, res) =>{
+    const searchInput = req.body.searchInput;
+    Book.findAll({
+        include: [Loan],
+        where: {
+            [Op.or]:[
+                {
+                    title: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    author: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    genre: {[Op.like]: `%${searchInput}%`}
+                },
+                {
+                    first_published: {[Op.like]: `%${searchInput}%`}
+                }
+            ]
+        }
+    })
+    .then( books => {
+        console.log('Here');
+        res.render('allBooks', {books: books,
+                                checkoutFilter: true,
+                                today: createToday(),
+                                path: '/checkout'})
+    })
+    .catch( error => {
+        console.log(error);
+    })
+})
+
+//Pagination routes
+
+// router.post('/all/pagination/:index', (req, res) => {
+//     const offsetIndex = req.params.index - 1;
+//     Book.findAll({
+//         limit: 8,
+//         offset: offsetIndex * 8
+//     }).then( books => {
+//         res.render('allBooks', {books:books, path:'/all'})
+//     })
+// })
+
+router.post('/all/pagination/:index', (req, res) => {
+    const offsetIndex = req.params.index - 1;
+    Book.findAll().then( books => {
+        console.log(offsetIndex);
+        res.render('allBooks', {books:books, path:'/all', offsetIndex: offsetIndex})
     })
 })
 

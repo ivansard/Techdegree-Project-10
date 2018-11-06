@@ -25,9 +25,9 @@ block main
                         option(value=patron.id) #{patron.first_name} #{patron.last_name}
         p
             label(for='loaned_on') Loaned on:
-            input#loaned_on(type='text', name='loaned_on' value=today)
+            input#loaned_on(type='date', name='loaned_on' value=today)
         p
             label(for='return_by') Return by:
-            input#return_by(type='text', name='return_by', value=weekFromToday)
+            input#return_by(type='date', name='return_by', value=weekFromToday)
         p
             input(type='submit', value='Create New Loan')

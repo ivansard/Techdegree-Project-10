@@ -1,6 +1,7 @@
 body {
   padding: 50px;
-  font: 18px "Garamond", serif;
+  /* font: 18px "Garamond", sans-serif; */
+  font: normal 1em/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 a {
   color: #019875;
@@ -14,6 +15,7 @@ a.button, input[type=submit] {
   color: white;
   background: #019875;
   font-family: "Lucida Grande", Helvetica, Arial, sans-serif;
+  font-family: sans-serif;
   padding: 10px 14px 12px;
   font-size: 14px;
   border-radius: 2px;
@@ -43,10 +45,30 @@ nav {
 nav ul li {
   display: inline-block;
   list-style: none;
-  padding-left: 7px;
+  background-color: rgb(230, 222, 222);
+  
 }
+
+nav ul li a{
+  vertical-align: 20px;
+  padding-left: 0px;
+}
+
+.nav-item{
+  padding: 0px 2%;
+  margin-right: 2%;
+  font-size: 40px;
+  border: 2px solid grey;
+  border-radius: 15%;
+}
+
+.nav-item img{
+  padding: 5px;
+}
+
+
   nav ul li:after {
-    content: " | ";
+    /* content: " | "; */
   }
   nav ul li:last-child:after {
     content: none;
