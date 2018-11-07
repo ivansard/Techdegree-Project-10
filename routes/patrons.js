@@ -9,7 +9,7 @@ const Patron = require('../models').Patron
 const Loan = require('../models').Loan
 
 
-
+//All patrons route
 router.get('/all', (req, res) => {
     Patron.findAll()
     .then( patrons => {
@@ -20,6 +20,7 @@ router.get('/all', (req, res) => {
     })
 })
 
+//New patron route
 router.get('/new', (req, res) => {
     res.render('newPatron', {patron: Patron.build() });
 })
@@ -42,6 +43,7 @@ router.get('/:id', (req, res) => {
     })
 })
 
+//Route to which is posted after creating new patron
 router.post('/new', (req, res) => {
     Patron.create(req.body)
     .then( () => {
@@ -63,6 +65,7 @@ router.post('/new', (req, res) => {
     })
 })
 
+//Route to which is posted a fter patron is updated
 router.post('/:id', (req, res) => {
     Patron.findByPk(req.params.id,  {
         include: [

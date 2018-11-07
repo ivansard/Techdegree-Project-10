@@ -2,18 +2,17 @@ const express = require('express');
 const router = express.Router();
 
 const Sequelize = require('sequelize');
+//This is for performing raw queries for updating the date fields in the loans table
 const sequelize = new Sequelize('library.db', '', '', {
     dialect: 'sqlite',
     storage: './db/library.db'
 });
 
-const moment = require('moment');
-
 const Book = require('../models').Book
 const Loan = require('../models').Loan
 const Patron = require('../models').Patron
 
-
+//Functions for formatting and creating needed dates
 const createFormattedDate = date =>{
     
     let dd = date.getDate();
@@ -60,7 +59,9 @@ const createToday = () => {
 
 //Loans routes
 
+//Route displaying all loans
 router.get('/all', (req, res) => {
+    //Updating the date fields, not to have timestamps
     sequelize.query(`UPDATE loans SET loaned_on = DATE(loaned_on), return_by = DATE(return_by), returned_on = DATE(returned_on)`) 
     .then(
         Loan.findAll({
@@ -75,7 +76,9 @@ router.get('/all', (req, res) => {
     })
 })
 
+//Route displaying page to reate new loan
 router.get('/new', (req, res) => {
+    //Promise.all to wait for two queries to the database to finish before moving on
     Promise.all([Book.findAll(), Patron.findAll()])
     .then( values => {
         res.render('newLoan', {loan: Loan.build(), allBooks: values[0], allPatrons: values[1], today: createToday(), weekFromToday: addDays(createToday(), 7), addDays: addDays})
@@ -85,6 +88,7 @@ router.get('/new', (req, res) => {
     })
 })
 
+//Overdue loans
 router.get('/overdue', (req, res) =>{
     Loan.findAll({
         include: [Book, Patron]
@@ -97,6 +101,7 @@ router.get('/overdue', (req, res) =>{
     })
 })
 
+//Checked out loans
 router.get('/checkout', (req, res) =>{
     Loan.findAll({
         include: [Book, Patron]
@@ -109,6 +114,7 @@ router.get('/checkout', (req, res) =>{
     })
 })
 
+//Route to which is posted after creating new loan
 router.post('/new', (req, res) => {
     console.log(req.body);
     Loan.create(req.body)

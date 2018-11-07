@@ -58,10 +58,12 @@ const createToday = () => {
 
 // Book routes
 
+//Route that renders window to create new book
 router.get('/new', (req, res) => {
     res.render('newBook', {book: Book.build() });
 })
 
+//All books route
 router.get('/all', (req, res) => {
     console.log(req.route.path);  
     Book.findAll()
@@ -73,6 +75,7 @@ router.get('/all', (req, res) => {
     })
 })
 
+//Overdue books route
 router.get('/overdue', (req, res) =>{
     Loan.findAll({
         include: [Book],
@@ -99,6 +102,7 @@ router.get('/overdue', (req, res) =>{
     })
 })
 
+//Checked out books route
 router.get('/checkout', (req, res) =>{
     Loan.findAll({
         include: [{model : Book,}],
@@ -122,6 +126,7 @@ router.get('/checkout', (req, res) =>{
     })
 })
 
+//Book details route
 router.get('/:id', (req, res) => {
     Book.findByPk(req.params.id, {
         include: [
@@ -160,6 +165,7 @@ router.get('/return/:id', (req, res) => {
 
 })
 
+
 router.post('/return/:id', (req, res) => {
     Loan.findByPk(req.params.id)
     .then( loan => {
@@ -167,14 +173,8 @@ router.post('/return/:id', (req, res) => {
     })
     .then( () => {
         sequelize.query(`UPDATE loans SET returned_on = DATE(returned_on) WHERE id=${req.params.id}`)
+        res.redirect('/loans/all');
     })
-    .then( () => {
-        Loan.findAll({
-            include: [Book, Patron]
-        }).then( loans => {
-            res.render('allLoans', {loans:loans})
-        })
-    }) 
     .catch( error => {
         if( error.name === 'SequelizeValidationError'){
             Loan.findByPk(req.params.id, {
@@ -194,6 +194,7 @@ router.post('/return/:id', (req, res) => {
 
 })
 
+//Route to which is posted after creating new book
 router.post('/new', (req, res) => {
     Book.create(req.body)
     .then( () => {
@@ -216,6 +217,7 @@ router.post('/new', (req, res) => {
     })
 })
 
+//Route to which is posted after book is updated
 router.post('/:id', (req, res) => {
     Book.findByPk(req.params.id)
     .then( book => {
