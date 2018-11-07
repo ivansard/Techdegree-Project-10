@@ -114,3 +114,28 @@ input {
 input[type=text], select {
   margin-left: 10px;
 }
+
+/* Pagination styles */
+
+.pagination{
+  text-align: left;
+}
+
+.pagination li {
+  display: inline-block;
+  border: 1px solid #eaeaea;
+  border-radius: 5px;
+  padding: 3px 8px;
+  text-decoration: none;
+  color: #019875;
+}
+
+/* Error styles */
+
+.errors {
+  font-weight: bold;
+}
+
+.errors li{
+  color: red;
+}

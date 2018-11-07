@@ -1,11 +1,40 @@
 const express = require('express');
 const router = express.Router();
 const Sequelize = require('sequelize');
+const sequelize = new Sequelize('library.db', '', '', {
+    dialect: 'sqlite',
+    storage: './db/library.db'
+});
 const Op = Sequelize.Op;
 
 const Book = require('../models').Book;
 const Loan = require('../models').Loan
 const Patron = require('../models').Patron
+
+const createFormattedDate = date =>{
+    
+    let dd = date.getDate();
+    let mm = date.getMonth() + 1; 
+    let yyyy = date.getFullYear();
+
+    if(dd<10) {
+        dd = '0'+dd
+    } 
+
+    if(mm<10) {
+        mm = '0'+mm
+    } 
+
+    let formattedDate = yyyy + '-' + mm + '-' + dd;
+
+    return formattedDate;
+}
+
+const addDays = (date, days) => {
+    var result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return createFormattedDate(result);
+}
 
 const createToday = () => {
     let today = new Date();
@@ -26,7 +55,6 @@ const createToday = () => {
     return today;
 }
 
-//Na svakoj ruti all, checkout, overdue, kada se klikne na pagination li
 
 // Book routes
 
@@ -46,14 +74,22 @@ router.get('/all', (req, res) => {
 })
 
 router.get('/overdue', (req, res) =>{
-    Book.findAll({
-        include: [Loan]
-         //Figure out how to fufill this condition:
-        //  if(book.Loans.length > 0 && !book.Loans[book.Loans.length - 1].dataValues.returned_on && book.Loans[book.Loans.length - 1].dataValues.return_by < today)
+    Loan.findAll({
+        include: [Book],
+            where:{
+                returned_on: null,
+                return_by:{
+                    lt: new Date()
+                }
+            }
     })
-    .then( books => {
+    .then( loans => {
+        let books = [];
+        loans.forEach(loan => {
+            books.push(loan.Book)
+        });
+        console.log(books);
         res.render('allBooks', {books: books,
-                                overdueFilter: true,
                                 today: createToday(),
                                 path: req.route.path,
                                 offsetIndex: 0})
@@ -64,19 +100,19 @@ router.get('/overdue', (req, res) =>{
 })
 
 router.get('/checkout', (req, res) =>{
-    Book.findAll({
-        include: [Loan],
-        // where: {
-        //     [Op.and]:[
-        //         {
-        //             returned_on: {[Op.eq]: null }
-        //         },
-        //     ]
-        // }
+    Loan.findAll({
+        include: [{model : Book,}],
+        where: {
+            returned_on: null
+        }
     })
-    .then( books => {
+    .then( loans => {
+        let books = [];
+        loans.forEach(loan => {
+            books.push(loan.Book)
+        });
+        console.log(books);
         res.render('allBooks', {books: books,
-                                checkoutFilter: true,
                                 today: createToday(),
                                 path: req.route.path,
                                 offsetIndex: 0})
@@ -116,7 +152,7 @@ router.get('/return/:id', (req, res) => {
         include: [Book, Patron]
     })
     .then( loan => {
-        res.render('returnBook', {loan:loan, today: createToday()})
+        res.render('returnBook', {loan:loan, today: createToday(), addDays: addDays})
     })
     .catch( error => {
         console.log(error);
@@ -130,19 +166,22 @@ router.post('/return/:id', (req, res) => {
        loan.update(req.body);
     })
     .then( () => {
+        sequelize.query(`UPDATE loans SET returned_on = DATE(returned_on) WHERE id=${req.params.id}`)
+    })
+    .then( () => {
         Loan.findAll({
             include: [Book, Patron]
         }).then( loans => {
             res.render('allLoans', {loans:loans})
         })
-    })
+    }) 
     .catch( error => {
         if( error.name === 'SequelizeValidationError'){
             Loan.findByPk(req.params.id, {
                 include: [Book, Patron]
             })
             .then( loan => {
-                res.render('returnBook', {loan:loan, today: createToday(), errors: error.errors})
+                res.render('returnBook', {loan:loan, today: createToday(), addDays: addDays, errors: error.errors})
             })
         } else {
             //This error will be caught by the final catch block
@@ -160,11 +199,12 @@ router.post('/new', (req, res) => {
     .then( () => {
         Book.findAll()
         .then( books => {
-            res.render('allBooks', {books: books})
+            res.render('allBooks', {books: books, path:'/all', offsetIndex:0})
         })
     })
     .catch( error => {
         if( error.name === 'SequelizeValidationError'){
+            console.log(error.errors);
             res.render('newBook', {book: Book.build(req.body), errors: error.errors})
         } else {
             //This error will be caught by the final catch block
@@ -223,7 +263,7 @@ router.post('/all/search', (req, res) => {
         }
     })
     .then( books => {
-        res.render('allBooks', {books: books, path: '/all'});
+        res.render('allBooks', {books: books, path: '/all', offsetIndex: 0});
     })
     .catch( error => {
         console.log(error);
@@ -284,7 +324,6 @@ router.post('/checkout/search', (req, res) =>{
         }
     })
     .then( books => {
-        console.log('Here');
         res.render('allBooks', {books: books,
                                 checkoutFilter: true,
                                 today: createToday(),
@@ -297,17 +336,7 @@ router.post('/checkout/search', (req, res) =>{
 
 //Pagination routes
 
-// router.post('/all/pagination/:index', (req, res) => {
-//     const offsetIndex = req.params.index - 1;
-//     Book.findAll({
-//         limit: 8,
-//         offset: offsetIndex * 8
-//     }).then( books => {
-//         res.render('allBooks', {books:books, path:'/all'})
-//     })
-// })
-
-router.post('/all/pagination/:index', (req, res) => {
+router.get('/all/pagination/:index', (req, res) => {
     const offsetIndex = req.params.index - 1;
     Book.findAll().then( books => {
         console.log(offsetIndex);

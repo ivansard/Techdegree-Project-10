@@ -47,8 +47,16 @@ router.post('/new', (req, res) => {
     .then( () => {
         Patron.findAll()
         .then( patrons => {
-            res.render('allPatrons', {patrons: patrons})
+            res.render('allPatrons', {patrons: patrons, path: '/all', offsetIndex: 0})
         })
+    })
+    .catch( error => {
+        if( error.name === 'SequelizeValidationError'){
+            res.render('newPatron', {patron: Patron.build(req.body), errors: error.errors})
+        } else {
+            //This error will be caught by the final catch block
+            throw error
+        }
     })
     .catch( error => {
         console.log(error);
@@ -114,7 +122,7 @@ router.post('/all/search', (req, res) => {
         }
     })
     .then( patrons => {
-        res.render('allPatrons', {patrons: patrons, path: '/all'});
+        res.render('allPatrons', {patrons: patrons, path: '/all', offsetIndex: 0});
     })
     .catch( error => {
         console.log(error);
@@ -123,7 +131,7 @@ router.post('/all/search', (req, res) => {
 
 //Pagination Routes
 
-router.post('/all/pagination/:index', (req, res) => {
+router.get('/all/pagination/:index', (req, res) => {
     const offsetIndex = req.params.index - 1;
     Patron.findAll().then( patrons => {
         console.log(offsetIndex);

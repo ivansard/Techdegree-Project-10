@@ -24,36 +24,36 @@ block main
                 th Genre
                 th Year Released
         tbody
-            if overdueFilter
-                each book in books
-                    if(book.Loans.length > 0 && !book.Loans[book.Loans.length - 1].dataValues.returned_on && book.Loans[book.Loans.length - 1].dataValues.return_by < today)
-                        tr
-                            td
-                                a(href=`/books/${book.id}`) #{book.title}
-                            td= book.author
-                            td= book.genre
-                            td= book.first_published
-                            - let n = 0
-            else if checkoutFilter
-                each book, index in books
-                    if(book.Loans.length > 0 && !book.Loans[book.Loans.length - 1].dataValues.returned_on && index >= offsetIndex * 8 && index < (offsetIndex+1))
-                        tr
-                            td
-                                a(href=`/books/${book.id}`) #{book.title}
-                            td= book.author
-                            td= book.genre
-                            td= book.first_published
-            else 
-                each book, index in books
-                    if index >= offsetIndex * 8 && index < (offsetIndex+1) * 8
-                        tr
-                            td
-                                a(href=`/books/${book.id}`) #{book.title}
-                            td= book.author
-                            td= book.genre
-                            td= book.first_published
+            //- if overdueFilter
+            //-     each book in books
+            //-         if(book.Loans.length > 0 && !book.Loans[book.Loans.length - 1].dataValues.returned_on && book.Loans[book.Loans.length - 1].dataValues.return_by < today)
+            //-             tr
+            //-                 td
+            //-                     a(href=`/books/${book.id}`) #{book.title}
+            //-                 td= book.author
+            //-                 td= book.genre
+            //-                 td= book.first_published
+            //-                 - let n = 0
+            //- else if checkoutFilter
+            //-     each book, index in books
+            //-         if(book.Loans.length > 0 && !book.Loans[book.Loans.length - 1].dataValues.returned_on && index >= offsetIndex * 8 && index < (offsetIndex+1))
+            //-             tr
+            //-                 td
+            //-                     a(href=`/books/${book.id}`) #{book.title}
+            //-                 td= book.author
+            //-                 td= book.genre
+            //-                 td= book.first_published
+            each book, index in books
+                if index >= offsetIndex * 8 && index < (offsetIndex+1) * 8
+                    tr
+                        td
+                            a(href=`/books/${book.id}`) #{book.title}
+                        td= book.author
+                        td= book.genre
+                        td= book.first_published
     - let n = 0
-    ul  
-        while n * 8 < books.length
-            form(action=`/books${path}/pagination/${++n}`, method='POST')
-                button(name='offset' value=n) #{n}
+    div(class='pagination')
+        ul  
+            while n * 8 < books.length
+                li
+                    a(href=`/books${path}/pagination/${++n}`) #{n}

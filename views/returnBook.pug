@@ -21,6 +21,6 @@ block main
     form(action=`/books/return/${loan.id}`, method='POST')
         p
             label(for='returned_on') Returned on:
-            input#returned_on(type='date',name='returned_on' value=today)
+            input#returned_on(type='date',name='returned_on',min=addDays(today, -365), max=addDays(today, 365), value=today)
         p
             input(type='submit', value='Return Book')

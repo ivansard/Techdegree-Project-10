@@ -1,6 +1,9 @@
 'use strict';
 
 const dateFormat= require('dateformat');
+const moment = require('moment');
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
 module.exports = (sequelize, DataTypes) => {
   const Loan = sequelize.define('Loan', {
@@ -26,27 +29,40 @@ module.exports = (sequelize, DataTypes) => {
     }, 
     loaned_on:{
       type: DataTypes.DATE,
+      [Op.and]:{
+        [Op.lt]: moment().add(1, 'year'),
+        [Op.gt]: moment().subtract(1, 'year')
+      },
       validate:{
         isDate:{
-          msg: 'Loaned on must be a in a valid date format (e.g. YYYY-MM-DD)'
+          msg: 'Loaned on must be a valid date'
         }
       }
     },
     return_by:{
       type: DataTypes.DATE,
+      [Op.and]:{
+        [Op.lt]: moment().add(1, 'year').add(7, 'days'),
+        [Op.gt]: moment().subtract(1, 'year').add(7, 'days')
+      },
       validate:{
         isDate:{
-          msg: 'Loaned on must be a in a valid date format (e.g. YYYY-MM-DD)'
+          msg: 'Return by must be a valid date'
         }
       }
     },
     returned_on:{
       type: DataTypes.DATE,
-      validate:{
-        isDate:{
-          msg: 'Loaned on must be a in a valid date format (e.g. YYYY-MM-DD)'
-        }
-      }
+      // [Op.and]:{
+      //   [Op.lt]: moment().add(1, 'year').add(7, 'days'),
+      //   [Op.gt]: moment().subtract(1, 'year').add(7, 'days'),
+      //   [Op.ne]: ''
+      // },
+      // validate:{
+      //   isDate:{
+      //     msg: 'Returned on must be a valid date'
+      //   }
+      // }
     },
   }, {
     timestamps: false
@@ -63,10 +79,12 @@ module.exports = (sequelize, DataTypes) => {
   };
 
   Loan.prototype.loanedOn = function() {
+    console.log('executing loanedOn');
     return dateFormat(this.loaned_on, "YYYY-mm-dd");
   };
 
   Loan.prototype.returnedOn = function() {
+    console.log('executing returnedOn');
     return dateFormat(this.returned_on , "YYYY-mm-dd");
   };
 

@@ -1,6 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
+const Sequelize = require('sequelize');
+const sequelize = new Sequelize('library.db', '', '', {
+    dialect: 'sqlite',
+    storage: './db/library.db'
+});
+
+const moment = require('moment');
+
 const Book = require('../models').Book
 const Loan = require('../models').Loan
 const Patron = require('../models').Patron
@@ -53,12 +61,15 @@ const createToday = () => {
 //Loans routes
 
 router.get('/all', (req, res) => {
-    Loan.findAll({
-        include: [Book, Patron]
-    })
-    .then( loans => {
-        res.render('allLoans', {loans: loans})
-    })
+    sequelize.query(`UPDATE loans SET loaned_on = DATE(loaned_on), return_by = DATE(return_by), returned_on = DATE(returned_on)`) 
+    .then(
+        Loan.findAll({
+            include: [Book, Patron]
+        })
+        .then( loans => {
+            res.render('allLoans', {loans: loans})
+        })
+    )
     .catch( error => {
         console.log(error);
     })
@@ -67,7 +78,7 @@ router.get('/all', (req, res) => {
 router.get('/new', (req, res) => {
     Promise.all([Book.findAll(), Patron.findAll()])
     .then( values => {
-        res.render('newLoan', {loan: Loan.build(), allBooks: values[0], allPatrons: values[1], today: createToday(), weekFromToday: addDays(createToday(), 7)})
+        res.render('newLoan', {loan: Loan.build(), allBooks: values[0], allPatrons: values[1], today: createToday(), weekFromToday: addDays(createToday(), 7), addDays: addDays})
     })
     .catch( error => {
         console.log(error);
@@ -102,13 +113,14 @@ router.post('/new', (req, res) => {
     console.log(req.body);
     Loan.create(req.body)
     .then( loan => {
+        sequelize.query(`UPDATE loans SET loaned_on = DATE(loaned_on), return_by = DATE(return_by)`) 
         res.redirect('/loans/all')
     })
     .catch( error => {
         if( error.name === 'SequelizeValidationError'){
             Promise.all([Book.findAll(), Patron.findAll()])
             .then( values => {
-                res.render('newLoan', {loan: Loan.build(req.body), allBooks: values[0], allPatrons: values[1], today: createToday(), weekFromToday: addDays(createToday(), 7), errors: error.errors})
+                res.render('newLoan', {loan: Loan.build(req.body), allBooks: values[0], allPatrons: values[1], today: createToday(), weekFromToday: addDays(createToday(), 7), addDays: addDays, errors: error.errors})
             })
         } else {
             //This error will be caught by the final catch block
